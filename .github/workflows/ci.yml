@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build backend
+        run: cd backend && pnpm build
+
+      - name: Build frontend
+        run: cd apps/customer-web && pnpm build
