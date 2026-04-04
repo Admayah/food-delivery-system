@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import type { JwtPayload, LoginInput } from "./auth.types.js";
 import { prisma } from "../../config/prisma.js";
 import { createUser, findUserByEmail } from "../users/user.service.js";
+import { AppError } from "../../shared/errors.js";
 
-const JWT_SECRET = "secret-key";
 
 // Mock user (replace with DB later)
 const mockUser = {
@@ -30,11 +30,11 @@ export const login = async (input: LoginInput) => {
 
   const user = await findUserByEmail(email);
 
-  if (!user) throw new Error("User not found");
+  if (!user) throw new AppError("User not found", 404);
 
   const isPasswordMatch = await bcrypt.compare(password, user.password);
 
-  if (!isPasswordMatch) throw new Error("Invalid credentials");
+  if (!isPasswordMatch) throw new AppError("Invalid credentials", 401);
 
   const token = jwt.sign(
     {

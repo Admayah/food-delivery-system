@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as authService from "./auth.service.js";
 
 export const registerUser = async (req: Request, res: Response) => {
@@ -19,7 +19,11 @@ export const registerUser = async (req: Request, res: Response) => {
   }
 };
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const data = await authService.login(req.body);
 
@@ -28,9 +32,6 @@ export const loginUser = async (req: Request, res: Response) => {
       data,
     });
   } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 };
