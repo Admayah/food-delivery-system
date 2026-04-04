@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { JwtPayload, LoginInput } from "./auth.types.js";
-
+import { prisma } from "../../config/prisma.js";
 
 const JWT_SECRET = "secret-key";
 
@@ -12,44 +12,47 @@ const mockUser = {
   password: bcrypt.hashSync("password123", 10),
 };
 
-// export const register = async (email: string, password: string) => {
-//     const existingUser = users.find(user => user.email === email);
+export const register = async (email: string, password: string) => {
+  const existingUser = await prisma.user.findUnique({ where: { email } });
 
-//     if (existingUser) {
-//         throw new Error("User already exists");
-//     }
+  if (existingUser) {
+    throw new Error("User already exists");
+  }
 
-//     const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-//     const newUser: User = {
-//         id: Date.now().toString(),
-//         email,
-//         password: hashedPassword,
-//     }
+  const newUser = await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+    },
+  });
 
-//     users.push(newUser);
-
-//     return {message: "User registered successfully"};
-// };
+  return {
+    id: newUser.id,
+    email: newUser.email,
+  };
+};
 
 export const login = async (input: LoginInput) => {
-    const { email, password } = input;
+  const { email, password } = input;
 
-    if (email !== mockUser.email) {
-        throw new Error("User not found");
-    }
+  const user = await prisma.user.findUnique({ where: { email } });
 
-    const isPasswordValid = await bcrypt.compare(password, mockUser.password);
+  if (!user) throw new Error("User not found");
 
-    if (!isPasswordValid) {
-        throw new Error("Invalid email or password");
-    }
+  const isPasswordMatch = await bcrypt.compare(password, user.password);
 
-    const payload: JwtPayload = {
-        userId: mockUser.id,
-        email: mockUser.email,
-    };
+  if (!isPasswordMatch) throw new Error("Invalid credentials");
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
-    return { token };   
-}
+  const token = jwt.sign(
+    {
+      userId: user.id,
+      email: user.email,
+    },
+    process.env.JWT_SECRET as string,
+    { expiresIn: "1h" },
+  );
+
+  return { token };
+};

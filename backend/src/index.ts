@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import authRoutes from "./modules/auth/auth.routes.js";
 
@@ -7,6 +8,8 @@ app.use(express.json())
 
 
 app.use("/auth", authRoutes)
+
+console.log("ENV CHECK:", process.env.DATABASE_URL);
 
 app.listen(5000, () => {
   console.log("Server running on port 5000...");

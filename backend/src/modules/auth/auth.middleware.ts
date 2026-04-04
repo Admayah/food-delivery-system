@@ -17,6 +17,10 @@ export const protectRoute = (
 
     const token = authHeader.split(" ")[1];
 
+    if (!token) {
+      throw new Error("Unauthorized");
+    }
+
     const decodedToken = jwt.verify(token, JWT_SECRET);
 
     (req as any).user = decodedToken;
