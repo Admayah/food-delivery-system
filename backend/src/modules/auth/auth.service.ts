@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { JwtPayload, LoginInput } from "./auth.types.js";
 import { prisma } from "../../config/prisma.js";
+import { createUser, findUserByEmail } from "../users/user.service.js";
 
 const JWT_SECRET = "secret-key";
 
@@ -13,7 +14,7 @@ const mockUser = {
 };
 
 export const register = async (email: string, password: string) => {
-  const existingUser = await prisma.user.findUnique({ where: { email } });
+  const existingUser = await findUserByEmail(email);
 
   if (existingUser) {
     throw new Error("User already exists");
@@ -21,23 +22,13 @@ export const register = async (email: string, password: string) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const newUser = await prisma.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-    },
-  });
-
-  return {
-    id: newUser.id,
-    email: newUser.email,
-  };
+  return await createUser(email, hashedPassword);
 };
 
 export const login = async (input: LoginInput) => {
   const { email, password } = input;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await findUserByEmail(email);
 
   if (!user) throw new Error("User not found");
 
