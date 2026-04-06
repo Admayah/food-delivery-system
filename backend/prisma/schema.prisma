@@ -7,12 +7,14 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  orders    Order[]
+  id           String        @id @default(uuid())
+  email        String        @unique
+  password     String
+  role         Role          @default(CUSTOMER)
+  createdAt    DateTime      @default(now())
+  orders       Order[]
+  transactions Transaction[]
+  wallet       Wallet?
 }
 
 model Order {
@@ -24,8 +26,9 @@ model Order {
   totalAmount Float
   createdAt   DateTime    @default(now())
 
-  user  User        @relation(fields: [userId], references: [id])
-  items OrderItem[]
+  user          User        @relation(fields: [userId], references: [id])
+  items         OrderItem[]
+  paymentStatus String      @default("PENDING")
 }
 
 model OrderItem {
@@ -86,6 +89,25 @@ model Rider {
   isOnline Boolean @default(true)
 
   createdAt DateTime @default(now())
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  userId    String
+  orderId   String
+  amount    Float
+  status    String // PENDING, SUCCESS, FAILED
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Wallet {
+  id      String @id @default(uuid())
+  userId  String @unique
+  balance Float  @default(0)
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 enum Role {
