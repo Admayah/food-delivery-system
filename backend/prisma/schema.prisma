@@ -12,11 +12,70 @@ model User {
   password  String
   role      Role     @default(CUSTOMER)
   createdAt DateTime @default(now())
+  orders    Order[]
 }
 
+model Order {
+  id          String      @id @default(uuid())
+  userId      String
+  status      OrderStatus @default(PENDING)
+  totalAmount Float
+  createdAt   DateTime    @default(now())
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+}
+
+model OrderItem {
+  id       String @id @default(uuid())
+  orderId  String
+  MenuItem String
+  price    Float
+  quantity Int
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model Restaurant {
+  id         String     @id @default(uuid())
+  name       String  
+  isOpen     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+
+  menus      Menu[]
+}
+
+model Menu {
+  id            String     @id @default(uuid())
+  restaurantId  String
+  name          String
+
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  items         MenuItem[]
+}
+
+model MenuItem {
+    id        String  @id @default(uuid())
+  menuId    String
+  name      String
+  price     Float
+  inStock   Boolean @default(true)
+
+  menu      Menu    @relation(fields: [menuId], references: [id])
+
+}
 
 enum Role {
   CUSTOMER
   RIDER
   ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
 }
