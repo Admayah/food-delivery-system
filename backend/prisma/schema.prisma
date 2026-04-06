@@ -18,6 +18,8 @@ model User {
 model Order {
   id          String      @id @default(uuid())
   userId      String
+  branchId    String?
+  riderId     String?
   status      OrderStatus @default(PENDING)
   totalAmount Float
   createdAt   DateTime    @default(now())
@@ -37,32 +39,53 @@ model OrderItem {
 }
 
 model Restaurant {
-  id         String     @id @default(uuid())
-  name       String  
-  isOpen     Boolean    @default(true)
-  createdAt  DateTime   @default(now())
+  id        String   @id @default(uuid())
+  name      String
+  isOpen    Boolean  @default(true)
+  createdAt DateTime @default(now())
 
-  menus      Menu[]
+  menus    Menu[]
+  branches Branch[]
 }
 
 model Menu {
-  id            String     @id @default(uuid())
-  restaurantId  String
-  name          String
+  id           String @id @default(uuid())
+  restaurantId String
+  name         String
 
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
-  items         MenuItem[]
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  items      MenuItem[]
 }
 
 model MenuItem {
-    id        String  @id @default(uuid())
-  menuId    String
-  name      String
-  price     Float
-  inStock   Boolean @default(true)
+  id      String  @id @default(uuid())
+  menuId  String
+  name    String
+  price   Float
+  inStock Boolean @default(true)
 
-  menu      Menu    @relation(fields: [menuId], references: [id])
+  menu Menu @relation(fields: [menuId], references: [id])
+}
 
+model Branch {
+  id           String  @id @default(uuid())
+  restaurantId String
+  name         String
+  lat          Float
+  lng          Float
+  isOnline     Boolean @default(true)
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+}
+
+model Rider {
+  id       String  @id @default(uuid())
+  name     String
+  lat      Float
+  lng      Float
+  isOnline Boolean @default(true)
+
+  createdAt DateTime @default(now())
 }
 
 enum Role {
@@ -75,6 +98,7 @@ enum OrderStatus {
   PENDING
   ACCEPTED
   PREPARING
+  READY_FOR_PICKUP
   OUT_FOR_DELIVERY
   DELIVERED
   CANCELLED
